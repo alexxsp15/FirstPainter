@@ -3,7 +3,6 @@ from PyQt6.QtCore import Qt, QSize, QRect
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout
 
-
 class Background(QWidget):
 
     def __init__(self, wigth = 1000, height = 700):
@@ -11,14 +10,11 @@ class Background(QWidget):
         self.pos = []
         self.drawing = False
         self.fill = False
-        self.figure = False
         self.color = "black"
         self.tool = "pen"
 
-        self.start_posX = 0
-        self.end_posX = 0
-        self.start_posY = 0
-        self.end_posY = 0
+        self.start_pos = None
+        self.end_pos = None
 
         self.image = QImage(wigth, height, QImage.Format.Format_ARGB32)
         self.image.fill(QColor("white"))
@@ -63,31 +59,55 @@ class Background(QWidget):
         elif self.tool == "pen":
             self.drawing = True
             self.pos.append((event.position().toPoint(), self.color))
-        else:
-            self.start_posX = event.position().x()
-            self.start_posY = event.position().y()
+        elif self.tool == "rect":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "elipse":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
         self.update()
 
-    def mouseReleaseEvent(self, event):
-        self.drawing = False
-        self.pos.append((None, None))
-
     def mouseMoveEvent(self, event):
-        if  self.drawing == True:
+        if  self.drawing and self.tool == "pen":
             self.pos.append((event.position().toPoint(), self.color))
             self.update()
-        else:
-            self.end_posX = event.position().x()
-            self.end_posY = event.position().y()
+        elif self.tool == "rect" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "elipse" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+
+    def mouseReleaseEvent(self, event):
+        if self.drawing:
+            self.drawing = False
+            self.pos.append((None, None))
+        elif self.tool == "rect" and self.start_pos:
+            rect = QRect(self.start_pos, event.position().toPoint())
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawRect(rect)
+
+            self.start_pos = None
+            self.end_pos = None
+        elif self.tool == "elipse" and self.start_pos:
+            elipse = QRect(self.start_pos, event.position().toPoint())
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawEllipse(elipse)
+
+        self.update()
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.drawImage(0, 0, self.image)
 
-
         for i in range(1, len(self.pos)):
-            painter = QPainter(self.image)
-            p1, c1 = self.pos[i-1]
+            p1, c1 = self.pos[i - 1]
             p2, c2 = self.pos[i]
 
             if p1 is None or p2 is None:
@@ -99,18 +119,21 @@ class Background(QWidget):
                 pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
                 painter.setPen(pen)
                 painter.drawLine(p1, p2)
-            painter.end()
 
-        if self.figure:
-            painter.drawRect(self.calculateRect(self.start_posX, self.start_posY, self.end_posX, self.end_posY))
+        if self.tool == "rect" and self.start_pos and self.end_pos:
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            rect = QRect(self.start_pos, self.end_pos)
+            painter.drawRect(rect)
 
-    def calculateRect(self, sx, sy, ex, ey):
-        x = sx
-        y = sy
-        w = abs(sx - ex)
-        h = abs(sy - ey)
+        if self.tool == "elipse" and self.start_pos and self.end_pos:
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            elipse = QRect(self.start_pos, self.end_pos)
+            painter.drawEllipse(elipse)
 
-        return QRect(x, y, w ,h)
+        painter.end()
+
 
 class MainWindow(QMainWindow):
 
@@ -168,9 +191,11 @@ class MainWindow(QMainWindow):
 
         self.penButton = QPushButton("pen")
         self.rectButton = QPushButton("rect")
+        self.elipseButton = QPushButton("elipse")
 
         self.penButton.clicked.connect(lambda: self.set_tool("pen"))
         self.rectButton.clicked.connect(lambda: self.set_tool("rect"))
+        self.elipseButton.clicked.connect(lambda: self.set_tool("elipse"))
 
         buttonsWidget.setFixedSize(210, 130)
         buttonsWidget.setLayout(buttonsLayout)
@@ -180,6 +205,7 @@ class MainWindow(QMainWindow):
         topLayout.addWidget(self.fillButton)
         topLayout.addWidget(self.penButton)
         topLayout.addWidget(self.rectButton)
+        topLayout.addWidget(self.elipseButton)
 
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(topWidget)
@@ -203,10 +229,6 @@ class MainWindow(QMainWindow):
 
     def set_tool(self, tool):
         self.bg.tool = tool
-        if tool == "pen":
-            self.bg.figure = False
-        else:
-            self.bg.figure = True
 
 app = QApplication(sys.argv)
 window = MainWindow()
