@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtCore import Qt, QSize, QRect
-from PyQt6.QtGui import QPainter, QPen, QColor, QImage
+from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QCursor, QPixmap, QBrush
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout
 
 class Background(QWidget):
@@ -21,11 +21,21 @@ class Background(QWidget):
 
         self.setFixedSize(QSize(wigth, height))
 
+        #Cursor
+        pix = QPixmap(32, 32)
+        pix.fill(Qt.GlobalColor.transparent)
+
+        p = QPainter(pix)
+        b = QBrush(QColor(self.color), Qt.BrushStyle.SolidPattern)
+        p.setBrush(b)
+        p.drawEllipse(12, 12, 6, 6)
+        p.end()
+        self.setCursor(QCursor(pix))
+
     def fill_feild(self, x, y):
         stack = [(x, y)]
-        start_color = self.image.pixelColor(x, y)
-        to_fill_color = QColor(self.color)
-        stack.append((x, y))
+        start_color = self.image.pixelColor(x, y).rgb()
+        to_fill_color = QColor(self.color).rgb()
 
         if start_color == to_fill_color:
             return
@@ -36,19 +46,27 @@ class Background(QWidget):
             if cx < 0 or cy < 0 or cx >= self.image.width() or cy >= self.image.height():
                 continue
 
-            if self.image.pixelColor(cx, cy) != start_color:
+            if self.image.pixelColor(cx, cy).rgb() != start_color:
                 continue
 
-            self.image.setPixelColor(cx, cy, to_fill_color)
+            self.image.setPixelColor(cx, cy, QColor(self.color))
 
             stack.append((cx + 1, cy))
             stack.append((cx - 1, cy))
             stack.append((cx, cy + 1))
             stack.append((cx, cy - 1))
 
-    def draw_fig(self, start, end, tool):
-        pass
+    def change_cursor(self, color):
+        pix = QPixmap(32, 32)
+        pix.fill(Qt.GlobalColor.transparent)
+        color = self.color
 
+        p = QPainter(pix)
+        b = QBrush(QColor(color), Qt.BrushStyle.SolidPattern)
+        p.setBrush(b)
+        p.drawEllipse(12, 12, 6, 6)
+        p.end()
+        self.setCursor(QCursor(pix))
 
     def mousePressEvent(self, event):
         self.x = int(event.position().x())
@@ -70,7 +88,25 @@ class Background(QWidget):
     def mouseMoveEvent(self, event):
         if  self.drawing and self.tool == "pen":
             self.pos.append((event.position().toPoint(), self.color))
+
+            painter = QPainter(self.image)
+            for i in range(1, len(self.pos)):
+                p1, c1 = self.pos[i - 1]
+                p2, c2 = self.pos[i]
+
+                if p1 is None or p2 is None:
+                    continue
+
+                if c1 == c2:
+                    pen = QPen(QColor(c2), 6)
+                    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+                    painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+                    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+                    painter.setPen(pen)
+                    painter.drawLine(p1, p2)
+            painter.end()
             self.update()
+
         elif self.tool == "rect" and self.start_pos:
             self.end_pos = event.position().toPoint()
             self.update()
@@ -105,20 +141,6 @@ class Background(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.drawImage(0, 0, self.image)
-
-        for i in range(1, len(self.pos)):
-            p1, c1 = self.pos[i - 1]
-            p2, c2 = self.pos[i]
-
-            if p1 is None or p2 is None:
-                continue
-
-            if c1 == c2:
-                pen = QPen(QColor(c2), 6)
-                pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-                pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
-                painter.setPen(pen)
-                painter.drawLine(p1, p2)
 
         if self.tool == "rect" and self.start_pos and self.end_pos:
             pen = QPen(QColor(self.color), 3)
@@ -218,6 +240,7 @@ class MainWindow(QMainWindow):
 
     def colorChanged(self, colorname):
         self.bg.color = colorname
+        self.bg.change_cursor(self.bg.color)
 
     def change_weapon(self):
         if self.fillButton.isChecked():

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="63bb951a-7097-4ac1-a488-a77b6d073ff5" name="Changes" comment="fill">
+    <list default="true" id="63bb951a-7097-4ac1-a488-a77b6d073ff5" name="Changes" comment="rect + ellipse">
       <change afterPath="$PROJECT_DIR$/fsd.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PainterQImage.py" beforeDir="false" afterPath="$PROJECT_DIR$/PainterQImage.py" afterDir="false" />
@@ -104,12 +104,21 @@
       <option name="project" value="LOCAL" />
       <updated>1756474626678</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="rect + ellipse">
+      <option name="closed" value="true" />
+      <created>1756580739119</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1756580739119</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="good job" />
     <MESSAGE value="fill" />
-    <option name="LAST_COMMIT_MESSAGE" value="fill" />
+    <MESSAGE value="rect + ellipse" />
+    <option name="LAST_COMMIT_MESSAGE" value="rect + ellipse" />
   </component>
 </project>
