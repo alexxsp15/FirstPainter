@@ -1,7 +1,8 @@
 import sys
 from PyQt6.QtCore import Qt, QSize, QRect
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QCursor, QPixmap, QBrush
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout, QScrollArea
+
 
 class Background(QWidget):
 
@@ -211,9 +212,61 @@ class MainWindow(QMainWindow):
         self.fillButton.setCheckable(True)
         self.fillButton.toggled.connect(self.change_weapon)
 
+        figuresList = []
+
         self.penButton = QPushButton("pen")
+        figuresList.append(self.penButton)
+        self.lineButton = QPushButton("line")
+        figuresList.append(self.lineButton)
+        self.curveButton = QPushButton("Curve")
+        figuresList.append(self.curveButton)
+        self.ovalButton = QPushButton("Oval")
+        figuresList.append(self.ovalButton)
+        self.roundedRect = QPushButton("RoundedRect")
+        figuresList.append(self.roundedRect)
+        self.rightArrowButton = QPushButton("RArrow")
+        figuresList.append(self.rightArrowButton)
+        self.leftArrowButton = QPushButton("LRArrow")
+        figuresList.append(self.leftArrowButton)
+        self.upArrowButton = QPushButton("UArrow")
+        figuresList.append(self.upArrowButton)
+        self.downArrowButton = QPushButton("DArrow")
+        figuresList.append(self.downArrowButton)
+        self.triangleButton = QPushButton("Triangle")
+        figuresList.append(self.triangleButton)
+        self.diamond = QPushButton("Diamond")
+        figuresList.append(self.diamond)
         self.rectButton = QPushButton("rect")
-        self.elipseButton = QPushButton("elipse")
+        figuresList.append(self.rectButton)
+        self.ellipseButton = QPushButton("elipse")
+        figuresList.append(self.ellipseButton)
+        self.cloud = QPushButton("Cloud")
+        figuresList.append(self.cloud)
+        self.thoughtBubble = QPushButton("Thought button")
+        figuresList.append(self.thoughtBubble)
+        self.star = QPushButton("Star")
+        figuresList.append(self.star)
+        self.heart = QPushButton("Heart")
+        figuresList.append(self.heart)
+        self.lightning = QPushButton("Lightning")
+        figuresList.append(self.lightning)
+        self.elipseButton = QPushButton("Ellipse")
+        figuresList.append(self.elipseButton)
+
+        self.figuresScroll = QScrollArea()
+        figuresWidget = QWidget()
+        figuresLayout = QGridLayout()
+
+        for i, button  in enumerate(figuresList):
+            button.setFixedSize(25, 25)
+
+            raw = i // 4
+            col = i % 4
+
+            figuresLayout.addWidget(button, raw, col, Qt.AlignmentFlag.AlignCenter)
+
+        figuresWidget.setLayout(figuresLayout)
+        self.figuresScroll.setWidget(figuresWidget)
 
         self.penButton.clicked.connect(lambda: self.set_tool("pen"))
         self.rectButton.clicked.connect(lambda: self.set_tool("rect"))
@@ -222,12 +275,12 @@ class MainWindow(QMainWindow):
         buttonsWidget.setFixedSize(210, 130)
         buttonsWidget.setLayout(buttonsLayout)
         topLayout.addWidget(buttonsWidget)
+        topLayout.addWidget(self.figuresScroll)
 
         topWidget.setLayout(topLayout)
         topLayout.addWidget(self.fillButton)
         topLayout.addWidget(self.penButton)
-        topLayout.addWidget(self.rectButton)
-        topLayout.addWidget(self.elipseButton)
+
 
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(topWidget)
