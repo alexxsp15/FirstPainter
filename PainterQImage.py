@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtCore import Qt, QSize, QRect
-from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QCursor, QPixmap, QBrush
+from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QCursor, QPixmap, QBrush, QIcon, QPainterPath
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout, QScrollArea
 
 
@@ -198,7 +198,7 @@ class MainWindow(QMainWindow):
 
             row = i // 8
             col = i % 8
-            buttonsLayout.addWidget(color, row, col, Qt.AlignmentFlag.AlignCenter)
+            buttonsLayout.addWidget(color, row, col)
 
             color.clicked.connect(lambda checked, n=name: self.colorChanged(n))
 
@@ -210,67 +210,134 @@ class MainWindow(QMainWindow):
 
         self.fillButton = QPushButton("Заливка")
         self.fillButton.setCheckable(True)
-        self.fillButton.toggled.connect(self.change_weapon)
+        self.fillButton.clicked.connect(lambda: self.set_tool("fill"))
 
-        figuresList = []
+        self.figuresList = []
 
         self.penButton = QPushButton("pen")
-        figuresList.append(self.penButton)
-        self.lineButton = QPushButton("line")
-        figuresList.append(self.lineButton)
-        self.curveButton = QPushButton("Curve")
-        figuresList.append(self.curveButton)
-        self.ovalButton = QPushButton("Oval")
-        figuresList.append(self.ovalButton)
-        self.roundedRect = QPushButton("RoundedRect")
-        figuresList.append(self.roundedRect)
-        self.rightArrowButton = QPushButton("RArrow")
-        figuresList.append(self.rightArrowButton)
-        self.leftArrowButton = QPushButton("LRArrow")
-        figuresList.append(self.leftArrowButton)
-        self.upArrowButton = QPushButton("UArrow")
-        figuresList.append(self.upArrowButton)
-        self.downArrowButton = QPushButton("DArrow")
-        figuresList.append(self.downArrowButton)
-        self.triangleButton = QPushButton("Triangle")
-        figuresList.append(self.triangleButton)
-        self.diamond = QPushButton("Diamond")
-        figuresList.append(self.diamond)
-        self.rectButton = QPushButton("rect")
-        figuresList.append(self.rectButton)
-        self.ellipseButton = QPushButton("elipse")
-        figuresList.append(self.ellipseButton)
-        self.cloud = QPushButton("Cloud")
-        figuresList.append(self.cloud)
-        self.thoughtBubble = QPushButton("Thought button")
-        figuresList.append(self.thoughtBubble)
-        self.star = QPushButton("Star")
-        figuresList.append(self.star)
-        self.heart = QPushButton("Heart")
-        figuresList.append(self.heart)
-        self.lightning = QPushButton("Lightning")
-        figuresList.append(self.lightning)
-        self.elipseButton = QPushButton("Ellipse")
-        figuresList.append(self.elipseButton)
+
+        self.lineButton = QPushButton()
+        self.figuresList.append(self.lineButton)
+        self.curveButton = QPushButton()
+        self.figuresList.append(self.curveButton)
+        self.circlelButton = QPushButton()
+        self.figuresList.append(self.circlelButton)
+        self.roundedRect = QPushButton()
+        self.figuresList.append(self.roundedRect)
+        self.rightArrowButton = QPushButton()
+        self.figuresList.append(self.rightArrowButton)
+        self.pentagonButton = QPushButton()
+        self.figuresList.append(self.pentagonButton)
+        self.leftArrowButton = QPushButton()
+        self.figuresList.append(self.leftArrowButton)
+        self.upArrowButton = QPushButton()
+        self.figuresList.append(self.upArrowButton)
+        self.downArrowButton = QPushButton()
+        self.figuresList.append(self.downArrowButton)
+        self.triangleButton = QPushButton()
+        self.figuresList.append(self.triangleButton)
+        self.diamond = QPushButton()
+        self.figuresList.append(self.diamond)
+        self.rectButton = QPushButton()
+        self.figuresList.append(self.rectButton)
+        self.ellipseButton = QPushButton()
+        self.figuresList.append(self.ellipseButton)
+        self.cloud = QPushButton()
+        self.figuresList.append(self.cloud)
+        self.thoughtBubble = QPushButton()
+        self.figuresList.append(self.thoughtBubble)
+        self.star = QPushButton()
+        self.figuresList.append(self.star)
+        self.heart = QPushButton()
+        self.figuresList.append(self.heart)
+        self.lightning = QPushButton()
+        self.figuresList.append(self.lightning)
+        self.elipseButton = QPushButton()
+        self.figuresList.append(self.elipseButton)
+        self.idkButton = QPushButton()
+        self.figuresList.append(self.idkButton)
 
         self.figuresScroll = QScrollArea()
+        self.figuresScroll.setWidgetResizable(True)
+        self.figuresScroll.setFixedWidth(150)
         figuresWidget = QWidget()
+        figuresWidget.setStyleSheet("Background-color: #696969")
         figuresLayout = QGridLayout()
+        figuresLayout.setSpacing(2)
 
-        for i, button  in enumerate(figuresList):
+        for i, button  in enumerate(self.figuresList):
             button.setFixedSize(25, 25)
+            button.setStyleSheet("""
+            QPushButton {
+            border: 0px;
+            border-radius: 3px
+            }
+
+            QPushButton:checked {
+            border: 1px solid #3B3B3B;
+            background-color: #242424; 
+            }
+
+            QPushButton:hover {
+            background-color: #525252;
+            border: 1px solid #3B3B3B;
+            }""")
 
             raw = i // 4
             col = i % 4
 
             figuresLayout.addWidget(button, raw, col, Qt.AlignmentFlag.AlignCenter)
 
+        for btn in self.figuresList:
+            btn.setCheckable(True)
+            btn.clicked.connect(lambda checked, b=btn: self.on_button_clicked(b))
+
         figuresWidget.setLayout(figuresLayout)
         self.figuresScroll.setWidget(figuresWidget)
+
+        self.lineButton.setIcon(self.paint_button("line"))
+        self.curveButton.setIcon(self.paint_button("curve"))
+        self.circlelButton.setIcon(self.paint_button("circle"))
+        self.roundedRect.setIcon(self.paint_button("roundedrect"))
+        self.rightArrowButton.setIcon(self.paint_button("rightarrow"))
+        self.pentagonButton.setIcon(self.paint_button("pentagon"))
+        self.leftArrowButton.setIcon(self.paint_button("leftarrow"))
+        self.upArrowButton.setIcon(self.paint_button("uparrow"))
+        self.downArrowButton.setIcon(self.paint_button("downarrow"))
+        self.triangleButton.setIcon(self.paint_button("triangle"))
+        self.diamond.setIcon(self.paint_button("diamond"))
+        self.rectButton.setIcon(self.paint_button("rect"))
+        self.ellipseButton.setIcon(self.paint_button("ellipse"))
+        self.cloud.setIcon(self.paint_button("cloud"))
+        self.thoughtBubble.setIcon(self.paint_button("thoughtbubble"))
+        self.star.setIcon(self.paint_button("star"))
+        self.heart.setIcon(self.paint_button("heart"))
+        self.lightning.setIcon(self.paint_button("lightning"))
+        self.elipseButton.setIcon(self.paint_button("elipse"))
+        self.idkButton.setIcon(self.paint_button("idk"))
 
         self.penButton.clicked.connect(lambda: self.set_tool("pen"))
         self.rectButton.clicked.connect(lambda: self.set_tool("rect"))
         self.elipseButton.clicked.connect(lambda: self.set_tool("elipse"))
+        self.lineButton.clicked.connect(lambda: self.set_tool("line"))
+        self.curveButton.clicked.connect(lambda: self.set_tool("curve"))
+        self.circlelButton.clicked.connect(lambda: self.set_tool("circle"))
+        self.roundedRect.clicked.connect(lambda: self.set_tool("roundedrect"))
+        self.rightArrowButton.clicked.connect(lambda: self.set_tool("rightarrow"))
+        self.pentagonButton.clicked.connect(lambda: self.set_tool("pentagon"))
+        self.leftArrowButton.clicked.connect(lambda: self.set_tool("leftarrow"))
+        self.upArrowButton.clicked.connect(lambda: self.set_tool("uparrow"))
+        self.downArrowButton.clicked.connect(lambda: self.set_tool("downarrow"))
+        self.triangleButton.clicked.connect(lambda: self.set_tool("triangle"))
+        self.diamond.clicked.connect(lambda: self.set_tool("diamond"))
+        self.rectButton.clicked.connect(lambda: self.set_tool("rect"))
+        self.ellipseButton.clicked.connect(lambda: self.set_tool("ellipse"))
+        self.cloud.clicked.connect(lambda: self.set_tool("cloud"))
+        self.thoughtBubble.clicked.connect(lambda: self.set_tool("thoughtbubble"))
+        self.star.clicked.connect(lambda: self.set_tool("star"))
+        self.heart.clicked.connect(lambda: self.set_tool("heart"))
+        self.lightning.clicked.connect(lambda: self.set_tool("lightning"))
+        self.idkButton.clicked.connect(lambda: self.set_tool("idk"))
 
         buttonsWidget.setFixedSize(210, 130)
         buttonsWidget.setLayout(buttonsLayout)
@@ -304,7 +371,132 @@ class MainWindow(QMainWindow):
             print(self.bg.fill)
 
     def set_tool(self, tool):
+        if tool == "fill":
+            for btn in self.figuresList:
+                btn.setChecked(False)
+            self.fillButton.setChecked(True)
+            self.penButton.setChecked(False)
+        elif tool == "pen":
+            for btn in self.figuresList:
+                btn.setChecked(False)
+            self.fillButton.setChecked(False)
+            self.penButton.setChecked(True)
+        else:
+            self.fillButton.setChecked(False)
+            self.penButton.setChecked(False)
         self.bg.tool = tool
+
+    def on_button_clicked(self, clicked_btn):
+        for btn in self.figuresList:
+             btn.setChecked(btn is clicked_btn)
+
+    def paint_button(self, txt):
+        pix = QPixmap(24, 24)
+        pix.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(pix)
+        pen = QPen(QColor("black"), 2)
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(pen)
+
+        if txt == "line":
+            painter.drawLine(5, 5, 19, 19)
+        elif txt == "curve":
+            painter.drawArc(3, 7, 16, 16, 0 * 16, 180 * 16)
+        elif txt == "circle":
+            painter.drawEllipse(3, 3, 19, 19)
+        elif txt == "roundedrect":
+            painter.drawRoundedRect(3, 5, 18, 15, 4, 4)
+        elif txt == "rightarrow":
+            path = QPainterPath()
+            path.moveTo(20, 12)
+            path.lineTo(12, 22)
+            path.lineTo(12, 16)
+            path.lineTo(3, 16)
+            path.lineTo(3, 7)
+            path.lineTo(12, 7)
+            path.lineTo(12, 2)
+            path.lineTo(20, 12)
+            painter.drawPath(path)
+        elif txt == "pentagon":
+            path = QPainterPath()
+            path.moveTo(12, 2)
+            path.lineTo(22, 9)
+            path.lineTo(17, 22)
+            path.lineTo(7, 22)
+            path.lineTo(2, 9)
+            path.lineTo(12, 2)
+            painter.drawPath(path)
+        elif txt == "leftarrow":
+            path = QPainterPath()
+            path.moveTo(4, 12)
+            path.lineTo(12, 22)
+            path.lineTo(12, 16)
+            path.lineTo(21, 16)
+            path.lineTo(21, 7)
+            path.lineTo(12, 7)
+            path.lineTo(12, 2)
+            path.lineTo(4, 12)
+            painter.drawPath(path)
+        elif txt == "uparrow":
+            path = QPainterPath()
+            path.moveTo(12, 2)
+            path.lineTo(22, 11)
+            path.lineTo(16, 11)
+            path.lineTo(16, 22)
+            path.lineTo(8, 22)
+            path.lineTo(8, 11)
+            path.lineTo(2, 11)
+            path.lineTo(12, 2)
+            painter.drawPath(path)
+        elif txt == "downarrow":
+            path = QPainterPath()
+            path.moveTo(12, 22)
+            path.lineTo(22, 13)
+            path.lineTo(16, 13)
+            path.lineTo(16, 2)
+            path.lineTo(8, 2)
+            path.lineTo(8, 13)
+            path.lineTo(2, 13)
+            path.lineTo(12, 22)
+            painter.drawPath(path)
+        elif txt == "triangle":
+            path = QPainterPath()
+            path.moveTo(12, 2)
+            path.lineTo(22, 22)
+            path.lineTo(2, 22)
+            path.lineTo(12, 2)
+            painter.drawPath(path)
+        elif txt == "diamond":
+            path = QPainterPath()
+            path.moveTo(2, 18)
+            path.lineTo(17, 18)
+            path.lineTo(22, 2)
+            path.lineTo(7, 2)
+            path.lineTo(2, 18)
+            painter.drawPath(path)
+        elif txt == "rect":
+            painter.drawRect(3, 5, 18, 15)
+        elif txt == "ellipse":
+            painter.drawEllipse(2, 5, 19, 14)
+        elif txt == "cloud":
+            path = QPainterPath()
+            path.moveTo(17, 22)
+            path.lineTo(7, 22)
+            path.addEllipse(4, 20, 8, 8)
+            painter.drawPath(path)
+        elif txt == "thoughtbubble":
+            pass
+        elif txt == "star":
+            pass
+        elif txt == "heart":
+            pass
+        elif txt == "lightning":
+            pass
+
+        painter.end()
+        return QIcon(pix)
+
 
 app = QApplication(sys.argv)
 window = MainWindow()
