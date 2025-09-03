@@ -294,6 +294,10 @@ class MainWindow(QMainWindow):
 
         figuresWidget.setLayout(figuresLayout)
         self.figuresScroll.setWidget(figuresWidget)
+        self.figuresScroll.setStyleSheet("""
+        QScrollArea: vertical {
+        width: 2px;
+        }""")
 
         self.lineButton.setIcon(self.paint_button("line"))
         self.curveButton.setIcon(self.paint_button("curve"))
@@ -309,7 +313,7 @@ class MainWindow(QMainWindow):
         self.rectButton.setIcon(self.paint_button("rect"))
         self.ellipseButton.setIcon(self.paint_button("ellipse"))
         self.cloud.setIcon(self.paint_button("cloud"))
-        self.thoughtBubble.setIcon(self.paint_button("thoughtbubble"))
+        self.thoughtBubble.setIcon(self.paint_button("drop"))
         self.star.setIcon(self.paint_button("star"))
         self.heart.setIcon(self.paint_button("heart"))
         self.lightning.setIcon(self.paint_button("lightning"))
@@ -333,7 +337,7 @@ class MainWindow(QMainWindow):
         self.rectButton.clicked.connect(lambda: self.set_tool("rect"))
         self.ellipseButton.clicked.connect(lambda: self.set_tool("ellipse"))
         self.cloud.clicked.connect(lambda: self.set_tool("cloud"))
-        self.thoughtBubble.clicked.connect(lambda: self.set_tool("thoughtbubble"))
+        self.thoughtBubble.clicked.connect(lambda: self.set_tool("drop"))
         self.star.clicked.connect(lambda: self.set_tool("star"))
         self.heart.clicked.connect(lambda: self.set_tool("heart"))
         self.lightning.clicked.connect(lambda: self.set_tool("lightning"))
@@ -481,19 +485,52 @@ class MainWindow(QMainWindow):
             painter.drawEllipse(2, 5, 19, 14)
         elif txt == "cloud":
             path = QPainterPath()
-            path.moveTo(17, 22)
-            path.lineTo(7, 22)
-            path.addEllipse(4, 20, 8, 8)
+            path.moveTo(7, 22)
+            path.lineTo(20, 22)
+            path.arcTo(14, 14, 8, 8, 0, 100)
+            path.arcTo(8, 8, 9, 9, 0, 180)
+            path.arcTo(2, 14, 8, 8, 100, 200)
             painter.drawPath(path)
-        elif txt == "thoughtbubble":
-            pass
+        elif txt == "drop":
+            path = QPainterPath()
+            path.moveTo(12, 2)
+            path.lineTo(6, 14)
+            path.arcTo(6, 11, 12, 12, 180, 190)
+            path.lineTo(12, 2)
+            painter.drawPath(path)
         elif txt == "star":
-            pass
+            path = QPainterPath()
+            path.moveTo(12, 2)
+            path.lineTo(15, 9)
+            path.lineTo(22, 9)
+            path.lineTo(17, 14)
+            path.lineTo(19, 21)
+            path.lineTo(12, 17)
+            path.lineTo(5, 21)
+            path.lineTo(7, 14)
+            path.lineTo(2, 9)
+            path.lineTo(9, 9)
+            path.closeSubpath()
+            painter.drawPath(path)
         elif txt == "heart":
-            pass
+            path = QPainterPath()
+            path.moveTo(22, 5)
+            path.arcTo(13, 1, 10, 10, 0, 180)
+            path.arcTo(2, 1, 10, 10, 0, 180)
+            path.lineTo(12, 22)
+            path.lineTo(23, 7)
+            painter.drawPath(path)
         elif txt == "lightning":
-            pass
-
+            path = QPainterPath()
+            path.moveTo(7, 2)
+            path.lineTo(17, 2)
+            path.lineTo(11, 13)
+            path.lineTo(15, 13)
+            path.lineTo(7, 22)
+            path.lineTo(9, 14)
+            path.lineTo(5, 14)
+            path.closeSubpath()
+            painter.drawPath(path)
         painter.end()
         return QIcon(pix)
 
