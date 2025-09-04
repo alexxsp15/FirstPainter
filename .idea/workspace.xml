@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="63bb951a-7097-4ac1-a488-a77b6d073ff5" name="Changes" comment="started  drawing on the buttons">
+    <list default="true" id="63bb951a-7097-4ac1-a488-a77b6d073ff5" name="Changes" comment="all the buttons - done!">
+      <change afterPath="$PROJECT_DIR$/figure_buttons_function.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/fsd.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PainterQImage.py" beforeDir="false" afterPath="$PROJECT_DIR$/PainterQImage.py" afterDir="false" />
@@ -135,7 +136,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756839266301</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="all the buttons - done!">
+      <option name="closed" value="true" />
+      <created>1756905510142</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1756905510142</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -145,6 +154,7 @@
     <MESSAGE value="new cursor + fill works again" />
     <MESSAGE value="added scroll  for figures" />
     <MESSAGE value="started  drawing on the buttons" />
-    <option name="LAST_COMMIT_MESSAGE" value="started  drawing on the buttons" />
+    <MESSAGE value="all the buttons - done!" />
+    <option name="LAST_COMMIT_MESSAGE" value="all the buttons - done!" />
   </component>
 </project>

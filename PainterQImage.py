@@ -1,7 +1,8 @@
 import sys
-from PyQt6.QtCore import Qt, QSize, QRect
+from PyQt6.QtCore import Qt, QSize, QRect, QRectF
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QCursor, QPixmap, QBrush, QIcon, QPainterPath
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout, QScrollArea
+from figure_buttons_function import paint_button
 
 
 class Background(QWidget):
@@ -10,7 +11,6 @@ class Background(QWidget):
         super().__init__()
         self.pos = []
         self.drawing = False
-        self.fill = False
         self.color = "black"
         self.tool = "pen"
 
@@ -73,7 +73,7 @@ class Background(QWidget):
         self.x = int(event.position().x())
         self.y = int(event.position().y())
 
-        if self.fill:
+        if self.tool == "fill":
             self.fill_feild(self.x, self.y)
         elif self.tool == "pen":
             self.drawing = True
@@ -81,7 +81,13 @@ class Background(QWidget):
         elif self.tool == "rect":
             self.start_pos = event.position().toPoint()
             self.end_pos = self.start_pos
-        elif self.tool == "elipse":
+        elif self.tool == "ellipse":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "line":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "curve":
             self.start_pos = event.position().toPoint()
             self.end_pos = self.start_pos
         self.update()
@@ -111,9 +117,16 @@ class Background(QWidget):
         elif self.tool == "rect" and self.start_pos:
             self.end_pos = event.position().toPoint()
             self.update()
-        elif self.tool == "elipse" and self.start_pos:
+        elif self.tool == "ellipse" and self.start_pos:
             self.end_pos = event.position().toPoint()
             self.update()
+        elif self.tool == "line":
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "curve" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+
 
     def mouseReleaseEvent(self, event):
         if self.drawing:
@@ -129,15 +142,34 @@ class Background(QWidget):
 
             self.start_pos = None
             self.end_pos = None
-        elif self.tool == "elipse" and self.start_pos:
+        elif self.tool == "ellipse" and self.start_pos:
             elipse = QRect(self.start_pos, event.position().toPoint())
 
             painter = QPainter(self.image)
             pen = QPen(QColor(self.color), 3)
             painter.setPen(pen)
             painter.drawEllipse(elipse)
+        elif self.tool == "line" and self.start_pos:
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawLine(self.start_pos, self.end_pos)
+        elif self.tool == "curve" and self.start_pos:
+            rect = QRectF(self.start_pos, event.position().toPoint())
+            path = QPainterPath()
+            path.moveTo(self.start_pos)
+            path.arcTo(rect, 0, 180)
 
-        self.update()
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+            painter.end()
+
+            self.start_pos = None
+            self.end_pos = None
+
+            self.update()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -149,11 +181,25 @@ class Background(QWidget):
             rect = QRect(self.start_pos, self.end_pos)
             painter.drawRect(rect)
 
-        if self.tool == "elipse" and self.start_pos and self.end_pos:
+        if self.tool == "ellipse" and self.start_pos and self.end_pos:
             pen = QPen(QColor(self.color), 3)
             painter.setPen(pen)
             elipse = QRect(self.start_pos, self.end_pos)
             painter.drawEllipse(elipse)
+
+        if self.tool == "line" and self.start_pos and self.end_pos:
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawLine(self.start_pos, self.end_pos)
+
+        if self.tool == "curve" and self.start_pos and self.end_pos:
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            rect = QRectF(self.start_pos, self.end_pos)
+            path = QPainterPath()
+            path.moveTo(self.start_pos)
+            path.arcTo(rect, 0, 180)
+            painter.drawPath(path)
 
         painter.end()
 
@@ -260,6 +306,25 @@ class MainWindow(QMainWindow):
         self.figuresScroll = QScrollArea()
         self.figuresScroll.setWidgetResizable(True)
         self.figuresScroll.setFixedWidth(150)
+        self.figuresScroll.setStyleSheet("""
+                QScrollBar:vertical {
+                width: 10px;
+                background: transparent;
+                }
+                QScrollBar::handle:vertical {
+                border-radius: 4px;
+                background: #3B3B3B;
+                min-height: 20px;
+                }
+                QScrollBar::add-line:vertical,
+                QScrollBar::sub-line:vertical {
+                height: 0;  
+                }
+                QScrollBar::add-page:vertical,
+                QScrollBar::sub-page:vertical {
+                background: transparent;
+                }
+                """)
         figuresWidget = QWidget()
         figuresWidget.setStyleSheet("Background-color: #696969")
         figuresLayout = QGridLayout()
@@ -294,31 +359,27 @@ class MainWindow(QMainWindow):
 
         figuresWidget.setLayout(figuresLayout)
         self.figuresScroll.setWidget(figuresWidget)
-        self.figuresScroll.setStyleSheet("""
-        QScrollArea: vertical {
-        width: 2px;
-        }""")
 
-        self.lineButton.setIcon(self.paint_button("line"))
-        self.curveButton.setIcon(self.paint_button("curve"))
-        self.circlelButton.setIcon(self.paint_button("circle"))
-        self.roundedRect.setIcon(self.paint_button("roundedrect"))
-        self.rightArrowButton.setIcon(self.paint_button("rightarrow"))
-        self.pentagonButton.setIcon(self.paint_button("pentagon"))
-        self.leftArrowButton.setIcon(self.paint_button("leftarrow"))
-        self.upArrowButton.setIcon(self.paint_button("uparrow"))
-        self.downArrowButton.setIcon(self.paint_button("downarrow"))
-        self.triangleButton.setIcon(self.paint_button("triangle"))
-        self.diamond.setIcon(self.paint_button("diamond"))
-        self.rectButton.setIcon(self.paint_button("rect"))
-        self.ellipseButton.setIcon(self.paint_button("ellipse"))
-        self.cloud.setIcon(self.paint_button("cloud"))
-        self.thoughtBubble.setIcon(self.paint_button("drop"))
-        self.star.setIcon(self.paint_button("star"))
-        self.heart.setIcon(self.paint_button("heart"))
-        self.lightning.setIcon(self.paint_button("lightning"))
-        self.elipseButton.setIcon(self.paint_button("elipse"))
-        self.idkButton.setIcon(self.paint_button("idk"))
+        self.lineButton.setIcon(paint_button("line"))
+        self.curveButton.setIcon(paint_button("curve"))
+        self.circlelButton.setIcon(paint_button("circle"))
+        self.roundedRect.setIcon(paint_button("roundedrect"))
+        self.rightArrowButton.setIcon(paint_button("rightarrow"))
+        self.pentagonButton.setIcon(paint_button("pentagon"))
+        self.leftArrowButton.setIcon(paint_button("leftarrow"))
+        self.upArrowButton.setIcon(paint_button("uparrow"))
+        self.downArrowButton.setIcon(paint_button("downarrow"))
+        self.triangleButton.setIcon(paint_button("triangle"))
+        self.diamond.setIcon(paint_button("diamond"))
+        self.rectButton.setIcon(paint_button("rect"))
+        self.ellipseButton.setIcon(paint_button("ellipse"))
+        self.cloud.setIcon(paint_button("cloud"))
+        self.thoughtBubble.setIcon(paint_button("drop"))
+        self.star.setIcon(paint_button("star"))
+        self.heart.setIcon(paint_button("heart"))
+        self.lightning.setIcon(paint_button("lightning"))
+        self.elipseButton.setIcon(paint_button("elipse"))
+        self.idkButton.setIcon(paint_button("idk"))
 
         self.penButton.clicked.connect(lambda: self.set_tool("pen"))
         self.rectButton.clicked.connect(lambda: self.set_tool("rect"))
@@ -366,14 +427,6 @@ class MainWindow(QMainWindow):
         self.bg.color = colorname
         self.bg.change_cursor(self.bg.color)
 
-    def change_weapon(self):
-        if self.fillButton.isChecked():
-            self.bg.fill = True
-            print(self.bg.fill)
-        else:
-            self.bg.fill = False
-            print(self.bg.fill)
-
     def set_tool(self, tool):
         if tool == "fill":
             for btn in self.figuresList:
@@ -389,151 +442,11 @@ class MainWindow(QMainWindow):
             self.fillButton.setChecked(False)
             self.penButton.setChecked(False)
         self.bg.tool = tool
+        print(self.bg.tool)
 
     def on_button_clicked(self, clicked_btn):
         for btn in self.figuresList:
              btn.setChecked(btn is clicked_btn)
-
-    def paint_button(self, txt):
-        pix = QPixmap(24, 24)
-        pix.fill(Qt.GlobalColor.transparent)
-
-        painter = QPainter(pix)
-        pen = QPen(QColor("black"), 2)
-        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-        painter.setPen(pen)
-
-        if txt == "line":
-            painter.drawLine(5, 5, 19, 19)
-        elif txt == "curve":
-            painter.drawArc(3, 7, 16, 16, 0 * 16, 180 * 16)
-        elif txt == "circle":
-            painter.drawEllipse(3, 3, 19, 19)
-        elif txt == "roundedrect":
-            painter.drawRoundedRect(3, 5, 18, 15, 4, 4)
-        elif txt == "rightarrow":
-            path = QPainterPath()
-            path.moveTo(20, 12)
-            path.lineTo(12, 22)
-            path.lineTo(12, 16)
-            path.lineTo(3, 16)
-            path.lineTo(3, 7)
-            path.lineTo(12, 7)
-            path.lineTo(12, 2)
-            path.lineTo(20, 12)
-            painter.drawPath(path)
-        elif txt == "pentagon":
-            path = QPainterPath()
-            path.moveTo(12, 2)
-            path.lineTo(22, 9)
-            path.lineTo(17, 22)
-            path.lineTo(7, 22)
-            path.lineTo(2, 9)
-            path.lineTo(12, 2)
-            painter.drawPath(path)
-        elif txt == "leftarrow":
-            path = QPainterPath()
-            path.moveTo(4, 12)
-            path.lineTo(12, 22)
-            path.lineTo(12, 16)
-            path.lineTo(21, 16)
-            path.lineTo(21, 7)
-            path.lineTo(12, 7)
-            path.lineTo(12, 2)
-            path.lineTo(4, 12)
-            painter.drawPath(path)
-        elif txt == "uparrow":
-            path = QPainterPath()
-            path.moveTo(12, 2)
-            path.lineTo(22, 11)
-            path.lineTo(16, 11)
-            path.lineTo(16, 22)
-            path.lineTo(8, 22)
-            path.lineTo(8, 11)
-            path.lineTo(2, 11)
-            path.lineTo(12, 2)
-            painter.drawPath(path)
-        elif txt == "downarrow":
-            path = QPainterPath()
-            path.moveTo(12, 22)
-            path.lineTo(22, 13)
-            path.lineTo(16, 13)
-            path.lineTo(16, 2)
-            path.lineTo(8, 2)
-            path.lineTo(8, 13)
-            path.lineTo(2, 13)
-            path.lineTo(12, 22)
-            painter.drawPath(path)
-        elif txt == "triangle":
-            path = QPainterPath()
-            path.moveTo(12, 2)
-            path.lineTo(22, 22)
-            path.lineTo(2, 22)
-            path.lineTo(12, 2)
-            painter.drawPath(path)
-        elif txt == "diamond":
-            path = QPainterPath()
-            path.moveTo(2, 18)
-            path.lineTo(17, 18)
-            path.lineTo(22, 2)
-            path.lineTo(7, 2)
-            path.lineTo(2, 18)
-            painter.drawPath(path)
-        elif txt == "rect":
-            painter.drawRect(3, 5, 18, 15)
-        elif txt == "ellipse":
-            painter.drawEllipse(2, 5, 19, 14)
-        elif txt == "cloud":
-            path = QPainterPath()
-            path.moveTo(7, 22)
-            path.lineTo(20, 22)
-            path.arcTo(14, 14, 8, 8, 0, 100)
-            path.arcTo(8, 8, 9, 9, 0, 180)
-            path.arcTo(2, 14, 8, 8, 100, 200)
-            painter.drawPath(path)
-        elif txt == "drop":
-            path = QPainterPath()
-            path.moveTo(12, 2)
-            path.lineTo(6, 14)
-            path.arcTo(6, 11, 12, 12, 180, 190)
-            path.lineTo(12, 2)
-            painter.drawPath(path)
-        elif txt == "star":
-            path = QPainterPath()
-            path.moveTo(12, 2)
-            path.lineTo(15, 9)
-            path.lineTo(22, 9)
-            path.lineTo(17, 14)
-            path.lineTo(19, 21)
-            path.lineTo(12, 17)
-            path.lineTo(5, 21)
-            path.lineTo(7, 14)
-            path.lineTo(2, 9)
-            path.lineTo(9, 9)
-            path.closeSubpath()
-            painter.drawPath(path)
-        elif txt == "heart":
-            path = QPainterPath()
-            path.moveTo(22, 5)
-            path.arcTo(13, 1, 10, 10, 0, 180)
-            path.arcTo(2, 1, 10, 10, 0, 180)
-            path.lineTo(12, 22)
-            path.lineTo(23, 7)
-            painter.drawPath(path)
-        elif txt == "lightning":
-            path = QPainterPath()
-            path.moveTo(7, 2)
-            path.lineTo(17, 2)
-            path.lineTo(11, 13)
-            path.lineTo(15, 13)
-            path.lineTo(7, 22)
-            path.lineTo(9, 14)
-            path.lineTo(5, 14)
-            path.closeSubpath()
-            painter.drawPath(path)
-        painter.end()
-        return QIcon(pix)
-
 
 app = QApplication(sys.argv)
 window = MainWindow()
