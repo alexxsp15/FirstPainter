@@ -2,8 +2,37 @@ import sys
 from PyQt6.QtCore import Qt, QSize, QRect, QRectF
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QCursor, QPixmap, QBrush, QIcon, QPainterPath, QWheelEvent
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout, \
-    QScrollArea, QGraphicsView, QGraphicsScene, QGraphicsItem
+QScrollArea, QGraphicsView, QGraphicsScene, QGraphicsItem, QGraphicsProxyWidget
 from figure_buttons_function import paint_button
+
+class MovableProxy(QGraphicsProxyWidget):
+    def __init__(self):
+        super().__init__()
+        self.dragging = False
+        self.offset = None
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.RightButton:
+            self.dragging = True
+            self.offset = event.pos()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self.dragging and (event.buttons() & Qt.MouseButton.RightButton):
+            new_pos = self.mapToScene(event.pos() - self.offset)
+            self.setPos(new_pos)
+            self.scene().update()
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.RightButton:
+            self.dragging = False
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+        else:
+            super().mouseReleaseEvent(event)
 
 class GraphicsView(QGraphicsView):
     def __init__(self, scene):
@@ -13,7 +42,6 @@ class GraphicsView(QGraphicsView):
         self.scale_factor = 1.15
 
     def wheelEvent(self, event: QWheelEvent):
-        # Збільшення/зменшення в залежності від напрямку колеса
         if event.angleDelta().y() > 0:
             zoom_in_factor = self.scale_factor
             self.scale(zoom_in_factor, zoom_in_factor)
@@ -227,19 +255,19 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Painter 1.1")
 
         self.bg = Background()
-        #self.bg.setFixedSize(1000, 700)
 
         self.scene = QGraphicsScene()
         self.scene.setSceneRect(-5000, -5000, 10000, 10000)
         self.scene.setBackgroundBrush(QColor("black"))
 
-        proxy = self.scene.addWidget(self.bg)
-        scene_rect = self.scene.sceneRect()
+        proxy = MovableProxy()
+        proxy.setWidget(self.bg)
         widget_size = self.bg.size()
         x = -widget_size.width() / 2
         y = -widget_size.height() / 2
         proxy.setPos(x, y)
         proxy.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable)
+        self.scene.addItem(proxy)
 
         mainWidget = QWidget()
         mainWidget.setStyleSheet("background-color: #808080")
@@ -446,6 +474,8 @@ class MainWindow(QMainWindow):
         mainLayout.addWidget(topWidget)
         self.view = GraphicsView(self.scene)
         self.view.centerOn(proxy)
+        self.view.setMinimumSize(1000, 600)
+        self.view.setMinimumSize(1400, 600)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         mainLayout.addWidget(self.view, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
