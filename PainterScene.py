@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtCore import Qt, QSize, QRect, QRectF
+from PyQt6.QtCore import Qt, QSize, QRect, QRectF, QPointF
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QCursor, QPixmap, QBrush, QIcon, QPainterPath, QWheelEvent
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout, \
 QScrollArea, QGraphicsView, QGraphicsScene, QGraphicsItem, QGraphicsProxyWidget
@@ -134,6 +134,42 @@ class Background(QWidget):
         elif self.tool == "curve":
             self.start_pos = event.position().toPoint()
             self.end_pos = self.start_pos
+        elif self.tool == "circle":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "roundedrect":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "rightarrow":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "pentagon":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "leftarrow":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "uparrow":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "downarrow":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "triangle":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "diamond":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "star":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "lightning":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
+        elif self.tool == "cloud":
+            self.start_pos = event.position().toPoint()
+            self.end_pos = self.start_pos
         self.update()
 
     def mouseMoveEvent(self, event):
@@ -170,6 +206,42 @@ class Background(QWidget):
         elif self.tool == "curve" and self.start_pos:
             self.end_pos = event.position().toPoint()
             self.update()
+        elif self.tool == "circle" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "roundedrect" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "rightarrow" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "pentagon" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "leftarrow" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "uparrow" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "downarrow" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "triangle" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "diamond" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "star" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "lightning" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
+        elif self.tool == "cloud" and self.start_pos:
+            self.end_pos = event.position().toPoint()
+            self.update()
 
 
     def mouseReleaseEvent(self, event):
@@ -198,22 +270,245 @@ class Background(QWidget):
             pen = QPen(QColor(self.color), 3)
             painter.setPen(pen)
             painter.drawLine(self.start_pos, self.end_pos)
-        elif self.tool == "curve" and self.start_pos:
-            rect = QRectF(self.start_pos, event.position().toPoint())
+        elif self.tool == "circle" and self.start_pos:
+            rect = QRect(self.start_pos, event.position().toPoint()).normalized()
+            side = min(rect.width(), rect.height())
+            rect.setWidth(side)
+            rect.setHeight(side)
+        elif self.tool == "roundedrect" and self.start_pos:
+            rect = QRect(self.start_pos, event.position().toPoint())
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawRoundedRect(rect, 20, 20)
+        elif self.tool == "rightarrow" and self.start_pos:
+            points = [(20, 12), (12, 22), (12, 16), (3, 16), (3, 7), (12, 7), (12, 2), (20, 12)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), event.position().x())
+            rect_y = min(self.start_pos.y(), event.position().y())
+            rect_w = abs(self.start_pos.x() - event.position().x())
+            rect_h = abs(self.start_pos.y() - event.position().y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
             path = QPainterPath()
-            path.moveTo(self.start_pos)
-            path.arcTo(rect, 0, 180)
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
 
             painter = QPainter(self.image)
             pen = QPen(QColor(self.color), 3)
             painter.setPen(pen)
             painter.drawPath(path)
-            painter.end()
+        elif self.tool == "pentagon" and self.start_pos:
+            points = [(12, 2), (22, 9), (17, 22), (7, 22), (2, 9), (12, 2)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), event.position().x())
+            rect_y = min(self.start_pos.y(), event.position().y())
+            rect_w = abs(self.start_pos.x() - event.position().x())
+            rect_h = abs(self.start_pos.y() - event.position().y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+        elif self.tool == "leftarrow" and self.start_pos:
+            points = [(4, 12), (12, 22), (12, 16), (21, 16), (21, 7), (12, 7), (12, 2), (4, 12)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), event.position().x())
+            rect_y = min(self.start_pos.y(), event.position().y())
+            rect_w = abs(self.start_pos.x() - event.position().x())
+            rect_h = abs(self.start_pos.y() - event.position().y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+        elif self.tool == "uparrow" and self.start_pos:
+            points = [(12, 2), (22, 11), (16, 11), (16, 22), (8, 22), (8, 11), (2, 11), (12, 2)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), event.position().x())
+            rect_y = min(self.start_pos.y(), event.position().y())
+            rect_w = abs(self.start_pos.x() - event.position().x())
+            rect_h = abs(self.start_pos.y() - event.position().y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
 
             self.start_pos = None
             self.end_pos = None
-
             self.update()
+        elif self.tool == "downarrow" and self.start_pos:
+            points = [(12, 22), (22, 13), (16, 13), (16, 2), (8, 2), (8, 13), (2, 13), (12, 22)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), event.position().x())
+            rect_y = min(self.start_pos.y(), event.position().y())
+            rect_w = abs(self.start_pos.x() - event.position().x())
+            rect_h = abs(self.start_pos.y() - event.position().y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+        elif self.tool == "triangle" and self.start_pos:
+            points = [(12, 2), (22, 22), (2, 22), (12, 2)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), event.position().x())
+            rect_y = min(self.start_pos.y(), event.position().y())
+            rect_w = abs(self.start_pos.x() - event.position().x())
+            rect_h = abs(self.start_pos.y() - event.position().y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+        elif self.tool == "diamond" and self.start_pos:
+            points = [(2, 18), (17, 18), (22, 2), (7, 2), (2, 18)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), event.position().x())
+            rect_y = min(self.start_pos.y(), event.position().y())
+            rect_w = abs(self.start_pos.x() - event.position().x())
+            rect_h = abs(self.start_pos.y() - event.position().y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+        elif self.tool == "star" and self.start_pos:
+            points = [(12, 2), (15, 9), (22, 9), (17, 14), (19, 21), (12, 17), (5, 21), (7, 14), (2, 9), (9, 9)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), event.position().x())
+            rect_y = min(self.start_pos.y(), event.position().y())
+            rect_w = abs(self.start_pos.x() - event.position().x())
+            rect_h = abs(self.start_pos.y() - event.position().y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+        elif self.tool == "lightning" and self.start_pos:
+            points = [(7, 2), (17, 2), (11, 13), (15, 13), (7, 22), (9, 14), (5, 14)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), event.position().x())
+            rect_y = min(self.start_pos.y(), event.position().y())
+            rect_w = abs(self.start_pos.x() - event.position().x())
+            rect_h = abs(self.start_pos.y() - event.position().y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+        elif self.tool == "cloud" and self.start_pos:
+            rect_x = min(self.start_pos.x(), event.position().x())
+            rect_y = min(self.start_pos.y(), event.position().y())
+            rect_w = abs(self.start_pos.x() - event.position().x())
+            rect_h = abs(self.start_pos.y() - event.position().y())
+
+            figure = [
+                ("move", (7 / 24, 22 / 24)),
+                ("line", (20 / 24, 22 / 24)),
+                ("arc", (14 / 24, 14 / 24, 8 / 24, 8 / 24, 0, 100)),
+                ("arc", (8 / 24, 8 / 24, 9 / 24, 9 / 24, 0, 180)),
+                ("arc", (2 / 24, 14 / 24, 8 / 24, 8 / 24, 100, 200)),
+            ]
+
+            path = QPainterPath()
+            for cmd in figure:
+                if cmd[0] == "move":
+                    x, y = cmd[1]
+                    path.moveTo(rect_x + x * rect_w, rect_y + y * rect_h)
+                elif cmd[0] == "line":
+                    x, y = cmd[1]
+                    path.lineTo(rect_x + x * rect_w, rect_y + y * rect_h)
+                elif cmd[0] == "arc":
+                    x, y, w, h, start, span = cmd[1]
+                    path.arcTo(rect_x + x * rect_w,
+                               rect_y + y * rect_h,
+                               w * rect_w,
+                               h * rect_h,
+                               start, span)
+
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+        self.update()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -243,6 +538,244 @@ class Background(QWidget):
             path = QPainterPath()
             path.moveTo(self.start_pos)
             path.arcTo(rect, 0, 180)
+            painter.drawPath(path)
+
+        if self.tool == "circle" and self.start_pos and self.end_pos:
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            rect = QRect(self.start_pos, self.end_pos).normalized()
+            side = min(rect.width(), rect.height())
+            rect.setWidth(side)
+            rect.setHeight(side)
+            painter.drawEllipse(rect)
+
+        if self.tool == "roundedrect" and self.start_pos and self.end_pos:
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            rect = QRect(self.start_pos, self.end_pos)
+            painter.drawRoundedRect(rect, 20, 20)
+
+        if self.tool == "rightarrow" and self.start_pos and self.end_pos:
+            points = [(20, 12), (12, 22), (12, 16), (3, 16), (3, 7), (12, 7), (12, 2), (20, 12)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), self.end_pos.x())
+            rect_y = min(self.start_pos.y(), self.end_pos.y())
+            rect_w = abs(self.start_pos.x() - self.end_pos.x())
+            rect_h = abs(self.start_pos.y() - self.end_pos.y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+
+        if self.tool == "pentagon" and self.start_pos and self.end_pos:
+            points = [(12, 2), (22, 9), (17, 22), (7, 22), (2, 9), (12, 2)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), self.end_pos.x())
+            rect_y = min(self.start_pos.y(), self.end_pos.y())
+            rect_w = abs(self.start_pos.x() - self.end_pos.x())
+            rect_h = abs(self.start_pos.y() - self.end_pos.y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+
+        if self.tool == "leftarrow" and self.start_pos and self.end_pos:
+            points = [(4, 12), (12, 22), (12, 16), (21, 16), (21, 7), (12, 7), (12, 2), (4, 12)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), self.end_pos.x())
+            rect_y = min(self.start_pos.y(), self.end_pos.y())
+            rect_w = abs(self.start_pos.x() - self.end_pos.x())
+            rect_h = abs(self.start_pos.y() - self.end_pos.y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+
+        if self.tool == "uparrow" and self.start_pos and self.end_pos:
+            points = [(12, 2), (22, 11), (16, 11), (16, 22), (8, 22), (8, 11), (2, 11), (12, 2)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), self.end_pos.x())
+            rect_y = min(self.start_pos.y(), self.end_pos.y())
+            rect_w = abs(self.start_pos.x() - self.end_pos.x())
+            rect_h = abs(self.start_pos.y() - self.end_pos.y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+
+        if self.tool == "downarrow" and self.start_pos and self.end_pos:
+            points = [(12, 22), (22, 13), (16, 13), (16, 2), (8, 2), (8, 13), (2, 13), (12, 22)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), self.end_pos.x())
+            rect_y = min(self.start_pos.y(), self.end_pos.y())
+            rect_w = abs(self.start_pos.x() - self.end_pos.x())
+            rect_h = abs(self.start_pos.y() - self.end_pos.y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+
+        if self.tool == "triangle" and self.start_pos and self.end_pos:
+            points = [(12, 2), (22, 22), (2, 22), (12, 2)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), self.end_pos.x())
+            rect_y = min(self.start_pos.y(), self.end_pos.y())
+            rect_w = abs(self.start_pos.x() - self.end_pos.x())
+            rect_h = abs(self.start_pos.y() - self.end_pos.y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+
+        if self.tool == "diamond" and self.start_pos and self.end_pos:
+            points = [(2, 18), (17, 18), (22, 2), (7, 2), (2, 18)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), self.end_pos.x())
+            rect_y = min(self.start_pos.y(), self.end_pos.y())
+            rect_w = abs(self.start_pos.x() - self.end_pos.x())
+            rect_h = abs(self.start_pos.y() - self.end_pos.y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+
+        if self.tool == "star" and self.start_pos and self.end_pos:
+            points = [(12, 2), (15, 9), (22, 9), (17, 14), (19, 21), (12, 17), (5, 21), (7, 14), (2, 9), (9, 9)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), self.end_pos.x())
+            rect_y = min(self.start_pos.y(), self.end_pos.y())
+            rect_w = abs(self.start_pos.x() - self.end_pos.x())
+            rect_h = abs(self.start_pos.y() - self.end_pos.y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+
+        if self.tool == "lightning" and self.start_pos and self.end_pos:
+            points = [(7, 2), (17, 2), (11, 13), (15, 13), (7, 22), (9, 14), (5, 14)]
+            normalized = [(x / 24, y / 24) for (x, y) in points]
+
+            rect_x = min(self.start_pos.x(), self.end_pos.x())
+            rect_y = min(self.start_pos.y(), self.end_pos.y())
+            rect_w = abs(self.start_pos.x() - self.end_pos.x())
+            rect_h = abs(self.start_pos.y() - self.end_pos.y())
+
+            scaled = [(rect_x + x * rect_w, rect_y + y * rect_h) for (x, y) in normalized]
+
+            path = QPainterPath()
+            path.moveTo(QPointF(*scaled[0]))
+            for pt in scaled[1:]:
+                path.lineTo(QPointF(*pt))
+            path.closeSubpath()
+
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            painter.drawPath(path)
+
+        if self.tool == "cloud" and self.start_pos and self.end_pos:
+            rect_x = min(self.start_pos.x(), self.end_pos.x())
+            rect_y = min(self.start_pos.y(), self.end_pos.y())
+            rect_w = abs(self.start_pos.x() - self.end_pos.x())
+            rect_h = abs(self.start_pos.y() - self.end_pos.y())
+
+            figure = [
+                ("move", (7 / 24, 22 / 24)),
+                ("line", (20 / 24, 22 / 24)),
+                ("arc", (14 / 24, 14 / 24, 8 / 24, 8 / 24, 0, 100)),
+                ("arc", (8 / 24, 8 / 24, 9 / 24, 9 / 24, 0, 180)),
+                ("arc", (2 / 24, 14 / 24, 8 / 24, 8 / 24, 100, 200)),
+            ]
+
+            path = QPainterPath()
+            for cmd in figure:
+                if cmd[0] == "move":
+                    x, y = cmd[1]
+                    path.moveTo(rect_x + x * rect_w, rect_y + y * rect_h)
+                elif cmd[0] == "line":
+                    x, y = cmd[1]
+                    path.lineTo(rect_x + x * rect_w, rect_y + y * rect_h)
+                elif cmd[0] == "arc":
+                    x, y, w, h, start, span = cmd[1]
+                    path.arcTo(rect_x + x * rect_w,
+                               rect_y + y * rect_h,
+                               w * rect_w,
+                               h * rect_h,
+                               start, span)
+
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
             painter.drawPath(path)
 
         painter.end()
