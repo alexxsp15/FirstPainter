@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="63bb951a-7097-4ac1-a488-a77b6d073ff5" name="Changes" comment="scene works perfectly!">
+    <list default="true" id="63bb951a-7097-4ac1-a488-a77b6d073ff5" name="Changes" comment="made most of the fugures work">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PainterScene.py" beforeDir="false" afterPath="$PROJECT_DIR$/PainterScene.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" />
@@ -45,19 +45,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.PainterQImage.executor": "Run",
-    "Python.PainterScene.executor": "Run",
-    "Python.dssd.executor": "Run",
-    "Python.figure_buttons_function.executor": "Run",
-    "Python.fsd.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.PainterQImage.executor&quot;: &quot;Run&quot;,
+    &quot;Python.PainterScene.executor&quot;: &quot;Run&quot;,
+    &quot;Python.dssd.executor&quot;: &quot;Run&quot;,
+    &quot;Python.figure_buttons_function.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fsd.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\pycharm_study\Painter" />
@@ -183,7 +183,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757503344501</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="made most of the fugures work">
+      <option name="closed" value="true" />
+      <created>1757591554959</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1757591554959</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -198,6 +206,7 @@
     <MESSAGE value="kinda added Graphics scene and view" />
     <MESSAGE value="graphicsscene is centered and movable now!!" />
     <MESSAGE value="scene works perfectly!" />
-    <option name="LAST_COMMIT_MESSAGE" value="scene works perfectly!" />
+    <MESSAGE value="made most of the fugures work" />
+    <option name="LAST_COMMIT_MESSAGE" value="made most of the fugures work" />
   </component>
 </project>

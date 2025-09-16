@@ -167,10 +167,9 @@ class Background(QWidget):
         elif self.tool == "lightning":
             self.start_pos = event.position().toPoint()
             self.end_pos = self.start_pos
-        elif self.tool == "cloud":
+        elif self.tool == "heart":
             self.start_pos = event.position().toPoint()
             self.end_pos = self.start_pos
-        self.update()
 
     def mouseMoveEvent(self, event):
         if  self.drawing and self.tool == "pen":
@@ -239,7 +238,7 @@ class Background(QWidget):
         elif self.tool == "lightning" and self.start_pos:
             self.end_pos = event.position().toPoint()
             self.update()
-        elif self.tool == "cloud" and self.start_pos:
+        elif self.tool == "heart" and self.start_pos:
             self.end_pos = event.position().toPoint()
             self.update()
 
@@ -270,11 +269,26 @@ class Background(QWidget):
             pen = QPen(QColor(self.color), 3)
             painter.setPen(pen)
             painter.drawLine(self.start_pos, self.end_pos)
+        elif self.tool == "curve" and self.start_pos:
+            rect = QRectF(self.start_pos, self.end_pos).normalized()
+            if rect.width() > 0 and rect.height() > 0:
+                path = QPainterPath()
+                path.arcMoveTo(rect, 0)
+                path.arcTo(rect, 0, 180)
+                painter = QPainter(self.image)
+                pen = QPen(QColor(self.color), 3)
+                painter.setPen(pen)
+                painter.drawPath(path)
+
         elif self.tool == "circle" and self.start_pos:
-            rect = QRect(self.start_pos, event.position().toPoint()).normalized()
+            painter = QPainter(self.image)
+            pen = QPen(QColor(self.color), 3)
+            painter.setPen(pen)
+            rect = QRect(self.start_pos, self.end_pos).normalized()
             side = min(rect.width(), rect.height())
             rect.setWidth(side)
             rect.setHeight(side)
+            painter.drawEllipse(rect)
         elif self.tool == "roundedrect" and self.start_pos:
             rect = QRect(self.start_pos, event.position().toPoint())
             painter = QPainter(self.image)
@@ -474,18 +488,19 @@ class Background(QWidget):
             pen = QPen(QColor(self.color), 3)
             painter.setPen(pen)
             painter.drawPath(path)
-        elif self.tool == "cloud" and self.start_pos:
+        elif self.tool == "heart" and self.start_pos:
             rect_x = min(self.start_pos.x(), event.position().x())
             rect_y = min(self.start_pos.y(), event.position().y())
             rect_w = abs(self.start_pos.x() - event.position().x())
             rect_h = abs(self.start_pos.y() - event.position().y())
 
             figure = [
-                ("move", (7 / 24, 22 / 24)),
-                ("line", (20 / 24, 22 / 24)),
-                ("arc", (14 / 24, 14 / 24, 8 / 24, 8 / 24, 0, 100)),
-                ("arc", (8 / 24, 8 / 24, 9 / 24, 9 / 24, 0, 180)),
-                ("arc", (2 / 24, 14 / 24, 8 / 24, 8 / 24, 100, 200)),
+                ("move", (12 / 24, 22 / 24)),
+                ("line", (2 / 24, 8 / 24)),
+                ("arc", (2 / 24, 1 / 24, 10 / 24, 10 / 24, 180, -180)),
+                ("arc", (12 / 24, 1 / 24, 10 / 24, 10 / 24, 180, -180)),
+                ("line", (22 / 24, 8 / 24)),
+                ("line", (12 / 24, 22 / 24)),
             ]
 
             path = QPainterPath()
@@ -532,22 +547,14 @@ class Background(QWidget):
             painter.drawLine(self.start_pos, self.end_pos)
 
         if self.tool == "curve" and self.start_pos and self.end_pos:
-            pen = QPen(QColor(self.color), 3)
-            painter.setPen(pen)
-            rect = QRectF(self.start_pos, self.end_pos)
-            path = QPainterPath()
-            path.moveTo(self.start_pos)
-            path.arcTo(rect, 0, 180)
-            painter.drawPath(path)
-
-        if self.tool == "circle" and self.start_pos and self.end_pos:
-            pen = QPen(QColor(self.color), 3)
-            painter.setPen(pen)
-            rect = QRect(self.start_pos, self.end_pos).normalized()
-            side = min(rect.width(), rect.height())
-            rect.setWidth(side)
-            rect.setHeight(side)
-            painter.drawEllipse(rect)
+            rect = QRectF(self.start_pos, self.end_pos).normalized()
+            if rect.width() > 0 and rect.height() > 0:
+                pen = QPen(QColor(self.color), 3)
+                painter.setPen(pen)
+                path = QPainterPath()
+                path.arcMoveTo(rect, 0)
+                path.arcTo(rect, 0, 180)
+                painter.drawPath(path)
 
         if self.tool == "roundedrect" and self.start_pos and self.end_pos:
             pen = QPen(QColor(self.color), 3)
@@ -744,18 +751,19 @@ class Background(QWidget):
             painter.setPen(pen)
             painter.drawPath(path)
 
-        if self.tool == "cloud" and self.start_pos and self.end_pos:
+        if self.tool == "heart" and self.start_pos and self.end_pos:
             rect_x = min(self.start_pos.x(), self.end_pos.x())
             rect_y = min(self.start_pos.y(), self.end_pos.y())
             rect_w = abs(self.start_pos.x() - self.end_pos.x())
             rect_h = abs(self.start_pos.y() - self.end_pos.y())
 
             figure = [
-                ("move", (7 / 24, 22 / 24)),
-                ("line", (20 / 24, 22 / 24)),
-                ("arc", (14 / 24, 14 / 24, 8 / 24, 8 / 24, 0, 100)),
-                ("arc", (8 / 24, 8 / 24, 9 / 24, 9 / 24, 0, 180)),
-                ("arc", (2 / 24, 14 / 24, 8 / 24, 8 / 24, 100, 200)),
+                ("move", (12 / 24, 22 / 24)),
+                ("line", (2 / 24, 8 / 24)),
+                ("arc", (2 / 24, 1 / 24, 10 / 24, 10 / 24, 180, -180)),
+                ("arc", (12 / 24, 1 / 24, 10 / 24, 10 / 24, 180, -180)),
+                ("line", (22 / 24, 8 / 24)),
+                ("line", (12 / 24, 22 / 24)),
             ]
 
             path = QPainterPath()
@@ -877,20 +885,14 @@ class MainWindow(QMainWindow):
         self.figuresList.append(self.rectButton)
         self.ellipseButton = QPushButton()
         self.figuresList.append(self.ellipseButton)
-        self.cloud = QPushButton()
-        self.figuresList.append(self.cloud)
-        self.thoughtBubble = QPushButton()
-        self.figuresList.append(self.thoughtBubble)
+        #self.thoughtBubble = QPushButton()
+        #self.figuresList.append(self.thoughtBubble)
         self.star = QPushButton()
         self.figuresList.append(self.star)
         self.heart = QPushButton()
         self.figuresList.append(self.heart)
         self.lightning = QPushButton()
         self.figuresList.append(self.lightning)
-        self.elipseButton = QPushButton()
-        self.figuresList.append(self.elipseButton)
-        self.idkButton = QPushButton()
-        self.figuresList.append(self.idkButton)
 
         self.figuresScroll = QScrollArea()
         self.figuresScroll.setWidgetResizable(True)
@@ -962,17 +964,12 @@ class MainWindow(QMainWindow):
         self.diamond.setIcon(paint_button("diamond"))
         self.rectButton.setIcon(paint_button("rect"))
         self.ellipseButton.setIcon(paint_button("ellipse"))
-        self.cloud.setIcon(paint_button("cloud"))
-        self.thoughtBubble.setIcon(paint_button("drop"))
         self.star.setIcon(paint_button("star"))
         self.heart.setIcon(paint_button("heart"))
         self.lightning.setIcon(paint_button("lightning"))
-        self.elipseButton.setIcon(paint_button("elipse"))
-        self.idkButton.setIcon(paint_button("idk"))
 
         self.penButton.clicked.connect(lambda: self.set_tool("pen"))
         self.rectButton.clicked.connect(lambda: self.set_tool("rect"))
-        self.elipseButton.clicked.connect(lambda: self.set_tool("elipse"))
         self.lineButton.clicked.connect(lambda: self.set_tool("line"))
         self.curveButton.clicked.connect(lambda: self.set_tool("curve"))
         self.circlelButton.clicked.connect(lambda: self.set_tool("circle"))
@@ -986,12 +983,9 @@ class MainWindow(QMainWindow):
         self.diamond.clicked.connect(lambda: self.set_tool("diamond"))
         self.rectButton.clicked.connect(lambda: self.set_tool("rect"))
         self.ellipseButton.clicked.connect(lambda: self.set_tool("ellipse"))
-        self.cloud.clicked.connect(lambda: self.set_tool("cloud"))
-        self.thoughtBubble.clicked.connect(lambda: self.set_tool("drop"))
         self.star.clicked.connect(lambda: self.set_tool("star"))
         self.heart.clicked.connect(lambda: self.set_tool("heart"))
         self.lightning.clicked.connect(lambda: self.set_tool("lightning"))
-        self.idkButton.clicked.connect(lambda: self.set_tool("idk"))
 
         buttonsWidget.setFixedSize(210, 130)
         buttonsWidget.setLayout(buttonsLayout)
