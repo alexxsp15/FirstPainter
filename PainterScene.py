@@ -860,7 +860,7 @@ class MainWindow(QMainWindow):
         }""")
 
         self.fillButton = QPushButton()
-        self.fillButton.setIcon(QIcon(resource_path(resource_path("icons/icons8-fill-color-26.png"))))
+        self.fillButton.setIcon(QIcon(resource_path(("icons/icons8-fill-color-26.png"))))
         self.fillButton.setCheckable(True)
         self.fillButton.setFixedSize(50,50)
         self.fillButton.clicked.connect(lambda: self.set_tool("fill"))
@@ -1107,7 +1107,6 @@ class MainWindow(QMainWindow):
         self.view = GraphicsView(self.scene)
         self.view.centerOn(proxy)
         self.view.setMinimumSize(1000, 600)
-        self.view.setMinimumSize(1400, 600)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         mainLayout.addWidget(self.view, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
