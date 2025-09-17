@@ -1,8 +1,8 @@
-import sys
+import sys, os
 from PyQt6.QtCore import Qt, QSize, QRect, QRectF, QPointF
 from PyQt6.QtGui import QPainter, QPen, QColor, QImage, QCursor, QPixmap, QBrush, QIcon, QPainterPath, QWheelEvent
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout, \
-QScrollArea, QGraphicsView, QGraphicsScene, QGraphicsItem, QGraphicsProxyWidget
+    QScrollArea, QGraphicsView, QGraphicsScene, QGraphicsItem, QGraphicsProxyWidget, QSlider, QLabel, QButtonGroup
 from figure_buttons_function import paint_button
 
 class MovableProxy(QGraphicsProxyWidget):
@@ -55,8 +55,10 @@ class Background(QWidget):
         super().__init__()
         self.pos = []
         self.drawing = False
-        self.color = "black"
+        self.color = QColor("black")
         self.tool = "pen"
+        self.opt = 1
+        self.penSize = 5
 
         self.start_pos = None
         self.end_pos = None
@@ -71,7 +73,7 @@ class Background(QWidget):
         pix.fill(Qt.GlobalColor.transparent)
 
         p = QPainter(pix)
-        b = QBrush(QColor(self.color), Qt.BrushStyle.SolidPattern)
+        b = QBrush(self.color, Qt.BrushStyle.SolidPattern)
         p.setBrush(b)
         p.drawEllipse(12, 12, 6, 6)
         p.end()
@@ -80,7 +82,7 @@ class Background(QWidget):
     def fill_feild(self, x, y):
         stack = [(x, y)]
         start_color = self.image.pixelColor(x, y).rgb()
-        to_fill_color = QColor(self.color).rgb()
+        to_fill_color = self.color.rgb()
 
         if start_color == to_fill_color:
             return
@@ -94,7 +96,7 @@ class Background(QWidget):
             if self.image.pixelColor(cx, cy).rgb() != start_color:
                 continue
 
-            self.image.setPixelColor(cx, cy, QColor(self.color))
+            self.image.setPixelColor(cx, cy, self.color)
 
             stack.append((cx + 1, cy))
             stack.append((cx - 1, cy))
@@ -107,7 +109,7 @@ class Background(QWidget):
         color = self.color
 
         p = QPainter(pix)
-        b = QBrush(QColor(color), Qt.BrushStyle.SolidPattern)
+        b = QBrush(self.color, Qt.BrushStyle.SolidPattern)
         p.setBrush(b)
         p.drawEllipse(12, 12, 6, 6)
         p.end()
@@ -119,9 +121,20 @@ class Background(QWidget):
 
         if self.tool == "fill":
             self.fill_feild(self.x, self.y)
+
         elif self.tool == "pen":
             self.drawing = True
-            self.pos.append((event.position().toPoint(), self.color))
+            point = event.position().toPoint()
+            self.pos.append([point, self.color, self.penSize])
+
+            point1 = event.position()
+            painter = QPainter(self.image)
+            painter.setPen(Qt.PenStyle.NoPen)  # без контуру
+            painter.setBrush(self.color)
+            painter.setBrush(self.color)  # заливка кольором
+            radius = self.penSize / 2
+            painter.drawEllipse(point1, radius, radius)
+
         elif self.tool == "rect":
             self.start_pos = event.position().toPoint()
             self.end_pos = self.start_pos
@@ -129,9 +142,6 @@ class Background(QWidget):
             self.start_pos = event.position().toPoint()
             self.end_pos = self.start_pos
         elif self.tool == "line":
-            self.start_pos = event.position().toPoint()
-            self.end_pos = self.start_pos
-        elif self.tool == "curve":
             self.start_pos = event.position().toPoint()
             self.end_pos = self.start_pos
         elif self.tool == "circle":
@@ -172,25 +182,22 @@ class Background(QWidget):
             self.end_pos = self.start_pos
 
     def mouseMoveEvent(self, event):
-        if  self.drawing and self.tool == "pen":
-            self.pos.append((event.position().toPoint(), self.color))
+        if self.drawing and self.tool == "pen":
+            point = event.position().toPoint()
+            self.pos.append((point, self.color, self.penSize))
 
-            painter = QPainter(self.image)
-            for i in range(1, len(self.pos)):
-                p1, c1 = self.pos[i - 1]
-                p2, c2 = self.pos[i]
+            if len(self.pos) >= 2:
+                p1, c1, a1 = self.pos[-2]
+                p2, c2, a2 = self.pos[-1]
 
-                if p1 is None or p2 is None:
-                    continue
-
-                if c1 == c2:
-                    pen = QPen(QColor(c2), 6)
-                    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-                    painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
-                    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
-                    painter.setPen(pen)
-                    painter.drawLine(p1, p2)
-            painter.end()
+                painter = QPainter(self.image)
+                pen = QPen(c2, a2)
+                pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+                pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+                painter.setPen(pen)
+                painter.drawLine(p1, p2)
+                painter.end()
             self.update()
 
         elif self.tool == "rect" and self.start_pos:
@@ -200,9 +207,6 @@ class Background(QWidget):
             self.end_pos = event.position().toPoint()
             self.update()
         elif self.tool == "line":
-            self.end_pos = event.position().toPoint()
-            self.update()
-        elif self.tool == "curve" and self.start_pos:
             self.end_pos = event.position().toPoint()
             self.update()
         elif self.tool == "circle" and self.start_pos:
@@ -251,7 +255,7 @@ class Background(QWidget):
             rect = QRect(self.start_pos, event.position().toPoint())
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawRect(rect)
 
@@ -261,28 +265,18 @@ class Background(QWidget):
             elipse = QRect(self.start_pos, event.position().toPoint())
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawEllipse(elipse)
         elif self.tool == "line" and self.start_pos:
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawLine(self.start_pos, self.end_pos)
-        elif self.tool == "curve" and self.start_pos:
-            rect = QRectF(self.start_pos, self.end_pos).normalized()
-            if rect.width() > 0 and rect.height() > 0:
-                path = QPainterPath()
-                path.arcMoveTo(rect, 0)
-                path.arcTo(rect, 0, 180)
-                painter = QPainter(self.image)
-                pen = QPen(QColor(self.color), 3)
-                painter.setPen(pen)
-                painter.drawPath(path)
 
         elif self.tool == "circle" and self.start_pos:
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             rect = QRect(self.start_pos, self.end_pos).normalized()
             side = min(rect.width(), rect.height())
@@ -292,7 +286,7 @@ class Background(QWidget):
         elif self.tool == "roundedrect" and self.start_pos:
             rect = QRect(self.start_pos, event.position().toPoint())
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawRoundedRect(rect, 20, 20)
         elif self.tool == "rightarrow" and self.start_pos:
@@ -313,7 +307,7 @@ class Background(QWidget):
             path.closeSubpath()
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
         elif self.tool == "pentagon" and self.start_pos:
@@ -334,7 +328,7 @@ class Background(QWidget):
             path.closeSubpath()
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
         elif self.tool == "leftarrow" and self.start_pos:
@@ -355,7 +349,7 @@ class Background(QWidget):
             path.closeSubpath()
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
         elif self.tool == "uparrow" and self.start_pos:
@@ -376,7 +370,7 @@ class Background(QWidget):
             path.closeSubpath()
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
@@ -401,7 +395,7 @@ class Background(QWidget):
             path.closeSubpath()
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
         elif self.tool == "triangle" and self.start_pos:
@@ -422,7 +416,7 @@ class Background(QWidget):
             path.closeSubpath()
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
         elif self.tool == "diamond" and self.start_pos:
@@ -443,7 +437,7 @@ class Background(QWidget):
             path.closeSubpath()
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
         elif self.tool == "star" and self.start_pos:
@@ -464,7 +458,7 @@ class Background(QWidget):
             path.closeSubpath()
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
         elif self.tool == "lightning" and self.start_pos:
@@ -485,7 +479,7 @@ class Background(QWidget):
             path.closeSubpath()
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
         elif self.tool == "heart" and self.start_pos:
@@ -520,7 +514,7 @@ class Background(QWidget):
                                start, span)
 
             painter = QPainter(self.image)
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
         self.update()
@@ -530,34 +524,24 @@ class Background(QWidget):
         painter.drawImage(0, 0, self.image)
 
         if self.tool == "rect" and self.start_pos and self.end_pos:
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             rect = QRect(self.start_pos, self.end_pos)
             painter.drawRect(rect)
 
         if self.tool == "ellipse" and self.start_pos and self.end_pos:
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             elipse = QRect(self.start_pos, self.end_pos)
             painter.drawEllipse(elipse)
 
         if self.tool == "line" and self.start_pos and self.end_pos:
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawLine(self.start_pos, self.end_pos)
 
-        if self.tool == "curve" and self.start_pos and self.end_pos:
-            rect = QRectF(self.start_pos, self.end_pos).normalized()
-            if rect.width() > 0 and rect.height() > 0:
-                pen = QPen(QColor(self.color), 3)
-                painter.setPen(pen)
-                path = QPainterPath()
-                path.arcMoveTo(rect, 0)
-                path.arcTo(rect, 0, 180)
-                painter.drawPath(path)
-
         if self.tool == "roundedrect" and self.start_pos and self.end_pos:
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             rect = QRect(self.start_pos, self.end_pos)
             painter.drawRoundedRect(rect, 20, 20)
@@ -579,7 +563,7 @@ class Background(QWidget):
                 path.lineTo(QPointF(*pt))
             path.closeSubpath()
 
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
@@ -600,7 +584,7 @@ class Background(QWidget):
                 path.lineTo(QPointF(*pt))
             path.closeSubpath()
 
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
@@ -621,7 +605,7 @@ class Background(QWidget):
                 path.lineTo(QPointF(*pt))
             path.closeSubpath()
 
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
@@ -642,7 +626,7 @@ class Background(QWidget):
                 path.lineTo(QPointF(*pt))
             path.closeSubpath()
 
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
@@ -663,7 +647,7 @@ class Background(QWidget):
                 path.lineTo(QPointF(*pt))
             path.closeSubpath()
 
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
@@ -684,7 +668,7 @@ class Background(QWidget):
                 path.lineTo(QPointF(*pt))
             path.closeSubpath()
 
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
@@ -705,7 +689,7 @@ class Background(QWidget):
                 path.lineTo(QPointF(*pt))
             path.closeSubpath()
 
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
@@ -726,7 +710,7 @@ class Background(QWidget):
                 path.lineTo(QPointF(*pt))
             path.closeSubpath()
 
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
@@ -747,7 +731,7 @@ class Background(QWidget):
                 path.lineTo(QPointF(*pt))
             path.closeSubpath()
 
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
@@ -782,12 +766,18 @@ class Background(QWidget):
                                h * rect_h,
                                start, span)
 
-            pen = QPen(QColor(self.color), 3)
+            pen = QPen(self.color, self.penSize)
             painter.setPen(pen)
             painter.drawPath(path)
 
         painter.end()
 
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS  # коли збираємо .exe
+    except Exception:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, relative_path)
 
 class MainWindow(QMainWindow):
 
@@ -799,7 +789,7 @@ class MainWindow(QMainWindow):
 
         self.scene = QGraphicsScene()
         self.scene.setSceneRect(-5000, -5000, 10000, 10000)
-        self.scene.setBackgroundBrush(QColor("black"))
+        self.scene.setBackgroundBrush(QColor.fromString("#1a1a1a"))
 
         proxy = MovableProxy()
         proxy.setWidget(self.bg)
@@ -811,9 +801,10 @@ class MainWindow(QMainWindow):
         self.scene.addItem(proxy)
 
         mainWidget = QWidget()
-        mainWidget.setStyleSheet("background-color: #808080")
+        mainWidget.setStyleSheet("background-color: #1e1e1e")
 
         topWidget = QWidget()
+        topWidget.setStyleSheet("""background-color: #2c2c2c;""")
         topLayout = QHBoxLayout()
 
         colors = [
@@ -829,40 +820,161 @@ class MainWindow(QMainWindow):
         self.colorButtons = [QPushButton(color) for color in colors]
 
         buttonsLayout = QGridLayout()
-        buttonsLayout.setSpacing(6)
+        buttonsLayout.setSpacing(0)
+
+        self.colorGroup = QButtonGroup(self)
+        self.colorGroup.setExclusive(True)
 
         for i, color in enumerate(self.colorButtons):
             color.setFixedSize(25, 25)
+            color.setCheckable(True)
             name = color.text()
 
-            color.setStyleSheet(
-                f"background-color: {name}; color: {name}; "
-            )
+            color.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {name};
+                    color: {name};   
+                    border-radius: 6px;
+                    padding: 5px;
+                }}
+
+                QPushButton:checked {{
+                    border: 2px solid #00c8c8;
+                }}
+            """)
 
             row = i // 8
             col = i % 8
             buttonsLayout.addWidget(color, row, col)
+
+            self.colorGroup.addButton(color)
 
             color.clicked.connect(lambda checked, n=name: self.colorChanged(n))
 
         buttonsWidget = QWidget()
         buttonsWidget.setStyleSheet("""
         QWidget {
-        background-color: #696969;
+        Background-color: #2c2c2c; 
+        border: 1px solid #3b3b3b; 
+        border-radius: 5px;
         }""")
 
-        self.fillButton = QPushButton("Заливка")
+        self.fillButton = QPushButton()
+        self.fillButton.setIcon(QIcon(resource_path(resource_path("icons/icons8-fill-color-26.png"))))
         self.fillButton.setCheckable(True)
+        self.fillButton.setFixedSize(50,50)
         self.fillButton.clicked.connect(lambda: self.set_tool("fill"))
+        self.fillButton.setStyleSheet("""
+                QPushButton {
+                border: 2px solid #3b3b3b; 
+                border-radius: 5px;
+                }
+                QPushButton:checked {
+                border: 2px solid #00c8c8;
+                border-radius: 5px;
+                }
+                """)
+
+        self.optSlider = QSlider()
+        self.sizeSlider = QSlider()
+        self.optSlider.setRange(0, 100)
+        self.sizeSlider.setRange(0,300)
+        self.optSlider.setOrientation(Qt.Orientation.Horizontal)
+        self.sizeSlider.setOrientation(Qt.Orientation.Horizontal)
+
+        self.optLabel = QLabel("Transparency:")
+        self.sizeLabel = QLabel("Size:")
+        self.optLabel.setStyleSheet("""
+        QLabel {
+        color: #cccccc;
+        font-size: 17px;
+        font-weight: bold;
+        }
+        """)
+        self.sizeLabel.setStyleSheet("""
+                QLabel {
+                color: #cccccc;
+                font-size: 17px;
+                font-weight: bold;
+                }
+                """)
+
+        self.slidersWidget = QWidget()
+        self.slidersLayout = QVBoxLayout()
+        self.slidersLayout.addWidget(self.optLabel)
+        self.slidersLayout.addWidget(self.optSlider)
+        self.slidersLayout.addWidget(self.sizeLabel)
+        self.slidersLayout.addWidget(self.sizeSlider)
+
+        self.optSlider.valueChanged.connect(self.chage_opt)
+        self.sizeSlider.valueChanged.connect(self.change_size)
+        self.optSlider.setSliderPosition(100)
+        self.sizeSlider.setSliderPosition(5)
+
+        self.sizeSlider.setStyleSheet("""
+        QSlider::groove {
+        border: 0px;
+        height: 3px;
+        background: #707070;
+        }
+        QSlider::handle {
+        width: 6px;
+        height: 6px;
+        margin: -5px 0;
+        background-color: #00c8c8;
+        }
+        QSlider::add-page {
+        background-color: #4a4a4a;
+        }
+        """)
+
+        self.optSlider.setStyleSheet("""
+                QSlider::groove {
+                border: 0px;
+                height: 3px;
+                background: #707070;
+                }
+                QSlider::handle {
+                width: 6px;
+                height: 6px;
+                margin: -5px 0;
+                background-color: #00c8c8;
+                }
+                QSlider::add-page {
+                background-color: #4a4a4a;
+                }
+                """)
+
+        self.slidersWidget.setObjectName("slidersWidget")
+        self.slidersWidget.setStyleSheet("""
+            QWidget#slidersWidget {
+                background-color: #2c2c2c;
+                border: 2px solid #3b3b3b;
+                border-radius: 5px;
+            }
+        """)
+
+        self.slidersWidget.setLayout(self.slidersLayout)
 
         self.figuresList = []
 
-        self.penButton = QPushButton("pen")
+        self.penButton = QPushButton()
+        self.penButton.setCheckable(True)
+        self.penButton.setFixedSize(50,50)
+        self.penButton.setIcon(QIcon(resource_path("icons/icons8-pencil-50.png")))
+        self.penButton.setStyleSheet("""
+        QPushButton {
+        border: 2px solid #3b3b3b; 
+        border-radius: 5px;
+        }
+        QPushButton:checked {
+        border: 2px solid #00c8c8;
+        border-radius: 5px;
+        }
+        """)
 
         self.lineButton = QPushButton()
         self.figuresList.append(self.lineButton)
-        self.curveButton = QPushButton()
-        self.figuresList.append(self.curveButton)
         self.circlelButton = QPushButton()
         self.figuresList.append(self.circlelButton)
         self.roundedRect = QPushButton()
@@ -885,8 +997,6 @@ class MainWindow(QMainWindow):
         self.figuresList.append(self.rectButton)
         self.ellipseButton = QPushButton()
         self.figuresList.append(self.ellipseButton)
-        #self.thoughtBubble = QPushButton()
-        #self.figuresList.append(self.thoughtBubble)
         self.star = QPushButton()
         self.figuresList.append(self.star)
         self.heart = QPushButton()
@@ -897,27 +1007,8 @@ class MainWindow(QMainWindow):
         self.figuresScroll = QScrollArea()
         self.figuresScroll.setWidgetResizable(True)
         self.figuresScroll.setFixedWidth(150)
-        self.figuresScroll.setStyleSheet("""
-                QScrollBar:vertical {
-                width: 10px;
-                background: transparent;
-                }
-                QScrollBar::handle:vertical {
-                border-radius: 4px;
-                background: #3B3B3B;
-                min-height: 20px;
-                }
-                QScrollBar::add-line:vertical,
-                QScrollBar::sub-line:vertical {
-                height: 0;  
-                }
-                QScrollBar::add-page:vertical,
-                QScrollBar::sub-page:vertical {
-                background: transparent;
-                }
-                """)
         figuresWidget = QWidget()
-        figuresWidget.setStyleSheet("Background-color: #696969")
+        figuresWidget.setStyleSheet("Background-color: #2c2c2c; border: 2px solid #3b3b3b; border-radius: 5px;")
         figuresLayout = QGridLayout()
         figuresLayout.setSpacing(2)
 
@@ -928,16 +1019,12 @@ class MainWindow(QMainWindow):
             border: 0px;
             border-radius: 3px
             }
-
+            
             QPushButton:checked {
-            border: 1px solid #3B3B3B;
-            background-color: #242424; 
+            border: 2px solid #00c8c8;
+            background-color: #3b3b3b;
             }
-
-            QPushButton:hover {
-            background-color: #525252;
-            border: 1px solid #3B3B3B;
-            }""")
+            """)
 
             raw = i // 4
             col = i % 4
@@ -952,7 +1039,6 @@ class MainWindow(QMainWindow):
         self.figuresScroll.setWidget(figuresWidget)
 
         self.lineButton.setIcon(paint_button("line"))
-        self.curveButton.setIcon(paint_button("curve"))
         self.circlelButton.setIcon(paint_button("circle"))
         self.roundedRect.setIcon(paint_button("roundedrect"))
         self.rightArrowButton.setIcon(paint_button("rightarrow"))
@@ -971,7 +1057,6 @@ class MainWindow(QMainWindow):
         self.penButton.clicked.connect(lambda: self.set_tool("pen"))
         self.rectButton.clicked.connect(lambda: self.set_tool("rect"))
         self.lineButton.clicked.connect(lambda: self.set_tool("line"))
-        self.curveButton.clicked.connect(lambda: self.set_tool("curve"))
         self.circlelButton.clicked.connect(lambda: self.set_tool("circle"))
         self.roundedRect.clicked.connect(lambda: self.set_tool("roundedrect"))
         self.rightArrowButton.clicked.connect(lambda: self.set_tool("rightarrow"))
@@ -992,9 +1077,29 @@ class MainWindow(QMainWindow):
         topLayout.addWidget(buttonsWidget)
         topLayout.addWidget(self.figuresScroll)
 
+        self.downloadButton = QPushButton("Download")
+        self.downloadButton.setFixedSize(150, 50)
+        self.downloadButton.setIcon(QIcon(resource_path("icons/icons8-download-64.png")))
+        self.downloadButton.setStyleSheet("""
+        QPushButton {
+        font-size: 13px;
+        color:#cccccc;
+        font-weight: bold;       
+        border: 2px solid #3b3b3b; 
+        border-radius: 5px;
+        }
+        QPushButton:pressed {
+        border: 2px solid #00c8c8;
+        border-radius: 5px;
+        }
+        """)
+
+
         topWidget.setLayout(topLayout)
         topLayout.addWidget(self.fillButton)
         topLayout.addWidget(self.penButton)
+        topLayout.addWidget(self.slidersWidget)
+        topLayout.addWidget(self.downloadButton)
 
 
         mainLayout = QVBoxLayout()
@@ -1013,7 +1118,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(mainWidget)
 
     def colorChanged(self, colorname):
-        self.bg.color = colorname
+        self.bg.color = QColor(colorname)
         self.bg.change_cursor(self.bg.color)
 
     def set_tool(self, tool):
@@ -1037,7 +1142,25 @@ class MainWindow(QMainWindow):
         for btn in self.figuresList:
              btn.setChecked(btn is clicked_btn)
 
-app = QApplication(sys.argv)
-window = MainWindow()
-window.show()
-app.exec()
+    def chage_opt(self):
+        o = self.optSlider.value()
+        print(f"St : {o}")
+        o = o / 100
+        print(f"Fin : {o}")
+        self.bg.opt = o
+
+        self.bg.color.setAlphaF(o)
+
+    def change_size(self):
+        s = self.sizeSlider.value()
+        self.bg.penSize = s
+        print(self.bg.penSize)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+
+    app.setWindowIcon(QIcon(resource_path("icons/icons8-paint-100.ico")))
+
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())

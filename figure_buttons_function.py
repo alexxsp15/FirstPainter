@@ -7,7 +7,7 @@ def paint_button(txt):
     pix.fill(Qt.GlobalColor.transparent)
 
     painter = QPainter(pix)
-    pen = QPen(QColor("black"), 2)
+    pen = QPen(QColor.fromString("#cccccc"), 2)
     pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     painter.setPen(pen)
 
