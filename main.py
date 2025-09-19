@@ -774,7 +774,7 @@ class Background(QWidget):
 
 def resource_path(relative_path):
     try:
-        base_path = sys._MEIPASS  # коли збираємо .exe
+        base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
@@ -973,6 +973,36 @@ class MainWindow(QMainWindow):
         }
         """)
 
+        self.eraser = QPushButton()
+        self.eraser.setCheckable(True)
+        self.eraser.setFixedSize(50, 50)
+        self.eraser.setIcon(QIcon(resource_path("icons/icons8-eraser-50.png")))
+        self.eraser.setStyleSheet("""
+                QPushButton {
+                border: 2px solid #3b3b3b; 
+                border-radius: 5px;
+                }
+                QPushButton:checked {
+                border: 2px solid #00c8c8;
+                border-radius: 5px;
+                }
+                """)
+
+        self.pipette = QPushButton()
+        self.pipette.setCheckable(True)
+        self.pipette.setFixedSize(50, 50)
+        self.pipette.setIcon(QIcon(resource_path("icons/icons8-pipette-50.png")))
+        self.pipette.setStyleSheet("""
+                        QPushButton {
+                        border: 2px solid #3b3b3b; 
+                        border-radius: 5px;
+                        }
+                        QPushButton:checked {
+                        border: 2px solid #00c8c8;
+                        border-radius: 5px;
+                        }
+                        """)
+
         self.lineButton = QPushButton()
         self.figuresList.append(self.lineButton)
         self.circlelButton = QPushButton()
@@ -1096,8 +1126,20 @@ class MainWindow(QMainWindow):
 
 
         topWidget.setLayout(topLayout)
-        topLayout.addWidget(self.fillButton)
-        topLayout.addWidget(self.penButton)
+
+        firstraw = QHBoxLayout()
+        secondraw = QHBoxLayout()
+        intr = QVBoxLayout()
+        firstraw.addWidget(self.penButton)
+        firstraw.addWidget(self.fillButton)
+        secondraw.addWidget(self.eraser)
+        secondraw.addWidget(self.pipette)
+        intr.addLayout(firstraw)
+        intr.addLayout(secondraw)
+        intrW = QWidget()
+        intrW.setLayout(intr)
+
+        topLayout.addWidget(intrW)
         topLayout.addWidget(self.slidersWidget)
         topLayout.addWidget(self.downloadButton)
 
